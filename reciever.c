@@ -6,40 +6,31 @@
 #include <time.h>
 #include <errno.h>
 
+static uint8_t reciever_allowed_to_run = 0;
+
+void set_reciever_allowence_ro_run(uint8_t allowence)
+{
+  reciever_allowed_to_run = allowence;
+}
+
 void reciever_thread(void)
 
 {
-  int u_errno = 0;
-  sleeptime reciever_sleeptime = {RECEIVER_DELAY_SEC, 0};
-
+  static const sleeptime reciever_sleeptime = {RECEIVER_DELAY_SEC, 0};
   int mqdt = open_mqueue(QUEUE_NAME);
-  ssize_t bytes_read;
-  while(1)
+
+  while(reciever_allowed_to_run == eThreadAllowedToRun)
   {
-    veh_message_t* cargo;
-    u_errno = 0;
-    bytes_read = mq_receive(mqdt, (char*)&cargo,(size_t)QUEUE_MSGSIZE, 0);
-    u_errno = errno;
-    if (bytes_read > 0)
+    packet_t* p_packet;
+    p_packet = mqueue_recieve(mqdt);
+    if (p_packet != NULL)
     {
-      print_cargo(cargo);
-      free(cargo);
-    }
-    else
-    {
-      if (u_errno == EAGAIN)
-      {
-        printf("RECIEVER -> empty queue\n");
-      }
-      else
-      {
-        perror("mq_recieve");
-        printf("RECIEVER -> ERRNO = %d\n", u_errno);
-      }
+        print_cargo(p_packet->p_message);
+        free(p_packet->p_message);
+        free(p_packet);
     }
     nanosleep(&reciever_sleeptime, NULL);
   }
-
 }
 
 

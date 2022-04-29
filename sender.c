@@ -18,19 +18,30 @@ static cargo_creator_t cargo_list[10] =
   {eCar, "car_5\0", NULL}, {eTruck, "truck_5\0", "cargo_truck_5\0"}
 };
 
+static uint8_t sender_allowed_to_run = 0;
+
+void set_sender_allowence_ro_run(uint8_t allowence)
+{
+  sender_allowed_to_run = allowence;
+}
+
+
 void sender_thread(void)
 {
-  sleeptime sender_sleeptime = {SENDER_DELAY_SEC, 0};
+  static const sleeptime sender_sleeptime = {SENDER_DELAY_SEC, 0};
   int cargo_num;
   int mqdt = open_mqueue(QUEUE_NAME);
-  int res;
 
-  while(1)
+  while(sender_allowed_to_run == eThreadAllowedToRun)
   {
     cargo_num = rand() % 10;
     veh_message_t* cargo = create_cargo(cargo_list[cargo_num]);
-    res = mq_send(mqdt, (const char*)&cargo, sizeof(cargo), 0);
-    ERROR_CHECK(res, 0, "mq_send");
+    packet_t* p_packet = malloc(sizeof(uint32_t) + sizeof(*cargo));
+
+    p_packet->msg_type = eCargo;
+    p_packet->p_message = cargo;
+
+    mqueue_send(mqdt, p_packet);
     nanosleep(&sender_sleeptime,NULL);
   }
 }

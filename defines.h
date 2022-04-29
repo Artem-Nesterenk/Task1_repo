@@ -1,5 +1,6 @@
 #ifndef DEFINES_H
 #define DEFINES_H
+#include <stdio.h>
 
 #define ERROR_CHECK(res, positive_val, msg) \
   if(res != positive_val) \
@@ -18,5 +19,11 @@
 #define RECEIVER_DELAY_SEC 1
 
 typedef struct timespec sleeptime;
+
+enum eThreadAllowence
+{
+  eThreadDisallowedToRun = 0,
+  eThreadAllowedToRun = 1,
+};
 
 #endif // DEFINES_H
