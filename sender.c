@@ -36,7 +36,7 @@ void sender_thread(void)
   {
     cargo_num = rand() % 10;
     veh_message_t* cargo = create_cargo(cargo_list[cargo_num]);
-    packet_t* p_packet = malloc(sizeof(uint32_t) + sizeof(*cargo));
+    packet_t* p_packet = malloc(sizeof(packet_t) + sizeof(*cargo));
 
     p_packet->msg_type = eCargo;
     p_packet->p_message = cargo;
